@@ -29,7 +29,7 @@ class style_transfer(QtCore.QObject):
 
     def __init__(self, style_path, content_path, iter, outlb,
                  content_weight, style_weight,neighbour_weight
-                 ,widht,height,style_layers,content_layers):
+                 ,width,height,style_layers,content_layers):
 
         QtCore.QObject.__init__(self)
 
@@ -40,39 +40,41 @@ class style_transfer(QtCore.QObject):
         self.style_weight = style_weight
         self.content_weight = content_weight
         self.neighbour_weight = neighbour_weight
-        self.width = widht
+        self.width = width
         self.height = height
         self.style_layers = style_layers
         self.contet_layers = content_layers
+        self.fps = 20
 
     def run(self):
 
         print(device_lib.list_local_devices())
 
-        height = 500
-        width = 500
-
         # make frames from content video
-        frames = np.array(get_frames(self.content_path, height, width))
+        frames, self.fps = get_frames(self.content_path, self.height, self.width)
+        print('Content wideo fps:', self.fps)
+
+        frames = np.asarray(frames)
         frames_count = 0
         temp_frames = []
         for frame in frames:
-            temp_frames.append(preprocess(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR), True))
+            temp_frames.append(preprocess(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR), True,self.width,self.height))
             frames_count += 1
+        print('wideo frames: ', frames_count)
 
         # have to make placehodler with no knowing one dimension of frames to concet inputs
-        content_image = tf.placeholder(tf.float32, shape=(None, height, width, 3))
+        content_image = tf.placeholder(tf.float32, shape=(None, self.height, self.width, 3))
 
         # load style image
         style_path = self.style_path
-        style = preprocess(load_img(style_path), True)
+        style = preprocess(load_img(style_path,self.width,self.height), True, self.width,self.height)
         style_image = tf.Variable(style)
 
         # make placeholder for our target new frames
-        combination_image = tf.placeholder(tf.float32, shape=(None, height, width, 3))
+        combination_image = tf.placeholder(tf.float32, shape=(None, self.height, self.width, 3))
 
         # make placehholder for previous generated frame to develop video loss
-        previous_combination = tf.placeholder(tf.float32, shape=(1, height, width, 3))
+        previous_combination = tf.placeholder(tf.float32, shape=(1, self.height, self.width, 3))
 
         # inputs for CNN
         input_tensor = tf.concat([content_image,
@@ -84,10 +86,6 @@ class style_transfer(QtCore.QObject):
 
         layers = dict([(layer.name, layer.output) for layer in model.layers])
 
-        content_weight = 0.025
-        style_weight = 20
-        total_variation_weight = 1.
-        neighbour_weight = 1
 
         loss = backend.variable(0.)
 
@@ -111,14 +109,15 @@ class style_transfer(QtCore.QObject):
             layer_features = layers[layer_name]
             style_features = layer_features[1, :, :, :]
             combination_features = layer_features[2, :, :, :]
-            sl = style_loss(style_features, combination_features)
+            sl = style_loss(style_features, combination_features,self.width,self.height)
             loss += (self.style_weight / len(self.style_layers)) * sl
 
 
         # add neigbour losses
         loss += self.neighbour_weight * neighbour_loss(previous_combination, combination_image)
 
-        loss += total_variation_weight * total_variation_loss(combination_image)
+        total_variation_weight = 1.
+        loss += total_variation_weight * total_variation_loss(combination_image,self.width,self.height)
 
 
         grads = backend.gradients(loss, combination_image)
@@ -129,14 +128,13 @@ class style_transfer(QtCore.QObject):
             outputs.append(grads)
 
         out_frames = []
-        x = np.random.uniform(0, 255, (1, height, width, 3)) - 128.
+        x = np.random.uniform(0, 255, (1, self.height, self.width, 3)) - 128.
         prev = x
 
         for i in range(frames_count):
-
             f_outputs = backend.function([combination_image, previous_combination], outputs, feed_dict = {
                                                                                     content_image: temp_frames[i]})
-            evaluator = Evaluator(f_outputs,height,width)
+            evaluator = Evaluator(f_outputs,self.height,self.width)
             if i < 1:
                 iterations = self.iterations
             else:
@@ -155,8 +153,9 @@ class style_transfer(QtCore.QObject):
                 print('Iteration %d completed in %ds' % (j, end_time - start_time))
 
 
-            x = x.reshape((height, width, 3))
+            x = x.reshape((self.height, self.width, 3))
 
+            # this part undo preprocess ( add mean values of imagenet pixels RGB )
             x = x[:, :, ::-1]
             x[:, :, 0] += 103.939
             x[:, :, 1] += 116.779
@@ -170,9 +169,6 @@ class style_transfer(QtCore.QObject):
             im = ImageQt(im)
             pix = QPixmap.fromImage(im)
             self.outlb.setPixmap(pix)
-
-            #self.signal.emit(im)
-            #im.show()
             out_frames.append(x)
 
 
@@ -184,26 +180,23 @@ class style_transfer(QtCore.QObject):
                 flow = Flow_forward(f_prev, f_next)
                 # the next initalization will be x
 
-                # warp przrabia obraz z stylem, ale zle, dlatego wynik sie psuje
-                x = preprocess(warp(x, flow),True)
+                x = preprocess(warp(x, flow),True,self.width,self.height)
                 cv2.imwrite("x_wraped.jpg", x)
-                #x = preprocess(x, True)
             else:
-                x = preprocess(x, True)
+                x = preprocess(x, True,self.width,self.height)
 
             prev = x
 
-        video_name = 'out.avi'
+        video_name = '../generated/out.avi'
 
         fourcc = cv2.VideoWriter_fourcc(*'MPEG')
-        video = cv2.VideoWriter(video_name,fourcc, 20.0, (width,height))
+        video = cv2.VideoWriter(video_name,fourcc, int(self.fps), (self.width,self.height))
 
         for ima in out_frames:
             video.write(cv2.cvtColor(ima,cv2.COLOR_RGB2BGR))
 
         cv2.destroyAllWindows()
         video.release()
-
         backend.clear_session()
 
 

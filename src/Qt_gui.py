@@ -37,11 +37,14 @@ class App(QMainWindow):
 
         self.content_video = cv2.VideoCapture(self.content_path[0])
         success, frame = self.content_video.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        im = Image.fromarray(frame)
-        im = ImageQt(im)
-        pix = QPixmap.fromImage(im)
-        self.contentlb.setPixmap(pix)
+        if(success):
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            cv2.destroyAllWindows()
+            im = Image.fromarray(frame)
+
+            im = ImageQt(im.resize((300,300)))
+            pix = QPixmap.fromImage(im)
+            self.contentlb.setPixmap(pix)
 
     def add(self,image):
         im = ImageQt(image)

@@ -4,28 +4,26 @@ from keras.applications.vgg16 import preprocess_input
 from keras import backend
 import numpy as np
 
-height = 500
-width = 500
-
 def get_frames(video_path, height, width):
     capture = cv2.VideoCapture(video_path)
+    fps = capture.get(cv2.CAP_PROP_FPS)
     success, image = capture.read()
     images = []
     count = 0
     while success:
-        cv2.imwrite("../frames/frame%d.jpg" % count, image)
+        #cv2.imwrite("../frames/frame%d.jpg" % count, image)
         images.append(cv2.resize(image, (height, width)))
         success, image = capture.read()
         count += 1
-    return images
+    return images, fps
 
 
-def load_img(img_path):
+def load_img(img_path,width,height):
     img = image.load_img(img_path, target_size=(height, width))
     return img
 
 
-def preprocess(img, exp):
+def preprocess(img, exp,width,height):
     x = image.img_to_array(img)
     if exp:
         x = np.expand_dims(x, axis=0)
@@ -44,7 +42,7 @@ def gram_matrix(x):
     gram = backend.dot(features, backend.transpose(features))
     return gram
 
-def style_loss(style, combination):
+def style_loss(style, combination,width,height):
     S = gram_matrix(style)
     C = gram_matrix(combination)
     channels = 3
@@ -52,7 +50,7 @@ def style_loss(style, combination):
     return backend.sum(backend.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
 
 
-def total_variation_loss(x):
+def total_variation_loss(x,width,height):
     a = backend.square(x[:, :height-1, :width-1, :] - x[:, 1:, :width-1, :])
     b = backend.square(x[:, :height-1, :width-1, :] - x[:, :height-1, 1:, :])
     return backend.sum(backend.pow(a + b, 1.25))

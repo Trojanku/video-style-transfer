@@ -334,14 +334,14 @@
    <widget class="QPushButton" name="contentbt">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>50</x>
       <y>610</y>
-      <width>121</width>
+      <width>141</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>load content</string>
+     <string>wczytaj zawartość</string>
     </property>
    </widget>
    <widget class="QPushButton" name="stylebt">
@@ -354,10 +354,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>load style</string>
+     <string>wczytaj styl</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="start">
+   <widget class="QPushButton" name="startb">
     <property name="geometry">
      <rect>
       <x>510</x>
@@ -655,7 +655,7 @@
     </item>
     <item>
      <property name="text">
-      <string>bock2_pool</string>
+      <string>block2_pool</string>
      </property>
      <property name="checkState">
       <enum>Unchecked</enum>
@@ -840,7 +840,7 @@
     </item>
     <item>
      <property name="text">
-      <string>bock2_pool</string>
+      <string>block2_pool</string>
      </property>
     </item>
     <item>
@@ -906,6 +906,123 @@
       <string>block5_pool</string>
      </property>
     </item>
+   </widget>
+   <widget class="QLabel" name="label_frame">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>360</y>
+      <width>41</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_iter">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>360</y>
+      <width>41</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>360</y>
+      <width>51</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>klatka:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>360</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Iteracja:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_klatka_2">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>360</y>
+      <width>16</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>/</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_klatka_max">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>360</y>
+      <width>41</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_klatka_4">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>360</y>
+      <width>16</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>/</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_iteracja_max">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>360</y>
+      <width>41</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stopb">
+    <property name="geometry">
+     <rect>
+      <x>720</x>
+      <y>500</y>
+      <width>171</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>stop</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

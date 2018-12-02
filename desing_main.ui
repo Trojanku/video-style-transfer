@@ -396,7 +396,10 @@
      <string/>
     </property>
     <property name="maximum">
-     <number>10000</number>
+     <number>600</number>
+    </property>
+    <property name="singleStep">
+     <number>5</number>
     </property>
     <property name="value">
      <number>250</number>
@@ -415,7 +418,10 @@
      <string/>
     </property>
     <property name="maximum">
-     <number>10000</number>
+     <number>600</number>
+    </property>
+    <property name="singleStep">
+     <number>5</number>
     </property>
     <property name="value">
      <number>250</number>

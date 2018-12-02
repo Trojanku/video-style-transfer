@@ -6,7 +6,6 @@ import numpy as np
 from keras import backend
 from keras.applications.vgg16 import VGG16
 from scipy import optimize
-
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
@@ -21,7 +20,8 @@ from PyQt5.QtGui import QPixmap
 from PIL.ImageQt import ImageQt
 # ----------------------------------------------------
 
-class style_transfer(QtCore.QObject):
+
+class StyleTransfer(QtCore.QObject):
 
     signal = QtCore.pyqtSignal(Image.Image)
 
@@ -58,7 +58,6 @@ class style_transfer(QtCore.QObject):
     def run(self):
 
         self.stop = False
-
         print(device_lib.list_local_devices())
 
         # make frames from content video
@@ -92,30 +91,27 @@ class style_transfer(QtCore.QObject):
                                   style_image,
                                   combination_image], axis=0)
 
+        # define CNN model
         model = VGG16(input_tensor=input_tensor, weights='imagenet',
                       pooling=max,include_top=False)
 
         layers = dict([(layer.name, layer.output) for layer in model.layers])
 
-
         loss = backend.variable(0.)
 
+        # add content loss
         layer_features = layers[self.contet_layers[0]]
-
         content_image_features = layer_features[0, :, :, :]
         combination_features = layer_features[2, :, :, :]
+        loss += self.content_weight * content_loss(content_image_features,combination_features)
 
-        # computer content loss
-        loss += self.content_weight * content_loss(content_image_features,
-                                              combination_features)
 
+        # add style loss
         for layer_name in self.style_layers:
             layer_features = layers[layer_name]
             style_features = layer_features[1, :, :, :]
             combination_features = layer_features[2, :, :, :]
-            sl = style_loss(style_features, combination_features,self.height,self.width)
-            loss += (self.style_weight / len(self.style_layers)) * sl
-
+            loss += (self.style_weight / len(self.style_layers)) * style_loss(style_features, combination_features,self.height,self.width)
 
         # add neigbour losses
         loss += self.neighbour_weight * neighbour_loss(previous_combination, combination_image)
@@ -123,24 +119,27 @@ class style_transfer(QtCore.QObject):
         # add total variation regularizer
         loss += total_variation_loss(combination_image,self.height,self.width)
 
-
+        # compute gradients
         grads = backend.gradients(loss, combination_image)
+
+        # create variable outputs to store loss and gradients
         outputs = [loss]
-        if type(grads) in {list, tuple}:
-            outputs += grads
-        else:
-            outputs.append(grads)
+        outputs += grads
 
         out_frames = []
         x = np.random.uniform(0, 255, (1, self.height, self.width, 3)) - 128.
         prev = x.copy()
         z = x.copy()
 
+        evaluator = Evaluator(self.height, self.width)
+
         for i in range(frames_count):
 
+            # compute tensorflow graph to get loss value and gradients
             f_outputs = backend.function([combination_image, previous_combination], outputs, feed_dict = {
                                                                                     content_image: temp_frames[i]})
-            evaluator = Evaluator(f_outputs,self.height,self.width)
+
+            evaluator.set_data(f_outputs)
             iterations = self.iterations
 
             print('Current frame: ', i)
@@ -152,9 +151,6 @@ class style_transfer(QtCore.QObject):
                     print('Start of iteration', j)
                     self.iterlb.setText(str(j))
                     start_time = time.time()
-
-                    if i == 0:
-                        prev = x.copy()
 
                     x, min_val, info = optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(), args=(prev.flatten(), ),
                                                      fprime=evaluator.grads, maxfun=20)
@@ -175,21 +171,18 @@ class style_transfer(QtCore.QObject):
                 else:
                     break
 
-            if im:
-                im.save("../frames/frame%d.jpg" % i)
             out_frames.append(z)
 
             # have to initialize the optimalization for the wraped frame
-
             if(i + 1 < frames_count):
                 f_prev = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
                 f_next = cv2.cvtColor(frames[i + 1], cv2.COLOR_BGR2GRAY)
                 flow = optical_flow(f_prev, f_next)
                 # the next initalization will be x
 
-                x = preprocess(warp(z, flow),True,self.height,self.width)
+                x = preprocess(warp(z, flow), True, self.height, self.width)
             else:
-                x = preprocess(z, True,self.height,self.width)
+                x = preprocess(z, True, self.height, self.width)
 
             prev = x.copy()
 
@@ -201,8 +194,11 @@ class style_transfer(QtCore.QObject):
         for ima in out_frames:
             video.write(cv2.cvtColor(ima,cv2.COLOR_RGB2BGR))
 
+        del evaluator
         cv2.destroyAllWindows()
         video.release()
         backend.clear_session()
         tf.reset_default_graph()
+
+
 

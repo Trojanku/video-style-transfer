@@ -1,12 +1,19 @@
 import numpy as np
 
+
 class Evaluator(object):
-    def __init__(self,f_outputs,height,width):
+    def __init__(self,height,width):
         self.loss_value = None
         self.grads_values = None
-        self.f_outputs = f_outputs
+        self.f_outputs = None
         self.width = width
         self.height = height
+
+    def set_data(self,f):
+        self.loss_value = None
+        self.grads_values = None
+        self.f_outputs = None
+        self.f_outputs = f
 
     def evaluate(self, x, prev, f_outputs):
         x = x.reshape((1, self.height, self.width, 3))

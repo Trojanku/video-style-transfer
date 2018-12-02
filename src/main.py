@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QFileDialog, QMainWindow
 from PyQt5.QtCore import Qt
 from PIL import Image
 from PIL.ImageQt import ImageQt
-from transfer import style_transfer
+from transfer import StyleTransfer
 import threading
 import cv2
 import sys
@@ -25,7 +25,7 @@ class App(QMainWindow):
         self.style_layers = []
         self.content_layer = []
 
-        self.transfer = style_transfer()
+        self.transfer = StyleTransfer()
 
     def count_frames(self,video):
         total = 0

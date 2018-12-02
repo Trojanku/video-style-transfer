@@ -2,7 +2,6 @@ import cv2
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 from keras import backend
-import tensorflow as tf
 import numpy as np
 
 
@@ -33,6 +32,7 @@ def preprocess(img, exp,height,width):
     x = x.reshape((1, height, width, 3))
     x = preprocess_input(x)
     return x
+
 
 def deprocess(x,height,width):
     x = x.reshape(height,width, 3)
@@ -66,6 +66,7 @@ def total_variation_loss(x,height,width):
     a = backend.square(x[:, :height - 1, :width - 1, :] - x[:, 1:, :width - 1, :])
     b = backend.square(x[:, :height - 1, :width - 1, :] - x[:, :height - 1, 1:, :])
     return backend.sum(backend.pow(a + b, 1.25))
+
 
 def neighbour_loss(prev, combination):
     return backend.sum(backend.square(prev - combination))

@@ -57,6 +57,10 @@ class StyleTransfer(QtCore.QObject):
 
     def run(self):
 
+        backend.clear_session()
+        tf.reset_default_graph()
+        cv2.destroyAllWindows()
+
         self.stop = False
         print(device_lib.list_local_devices())
 
@@ -143,13 +147,13 @@ class StyleTransfer(QtCore.QObject):
             iterations = self.iterations
 
             print('Current frame: ', i)
-            self.framelb.setText(str(i))
+            self.framelb.setText(str(i + 1))
 
             for j in range(iterations):
 
                 if not self.stop:
                     print('Start of iteration', j)
-                    self.iterlb.setText(str(j))
+                    self.iterlb.setText(str(j + 1))
                     start_time = time.time()
 
                     x, min_val, info = optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(), args=(prev.flatten(), ),

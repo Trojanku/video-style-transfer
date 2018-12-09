@@ -395,6 +395,9 @@
     <property name="prefix">
      <string/>
     </property>
+    <property name="minimum">
+     <number>200</number>
+    </property>
     <property name="maximum">
      <number>600</number>
     </property>
@@ -416,6 +419,9 @@
     </property>
     <property name="prefix">
      <string/>
+    </property>
+    <property name="minimum">
+     <number>200</number>
     </property>
     <property name="maximum">
      <number>600</number>
@@ -491,7 +497,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Wysokosc</string>
+     <string>wysokość</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
@@ -504,7 +510,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Szerokosc</string>
+     <string>szerokość</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
@@ -543,7 +549,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>waga zawartosci</string>
+     <string>waga zawartości</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_6">
@@ -577,7 +583,7 @@
      <rect>
       <x>10</x>
       <y>50</y>
-      <width>121</width>
+      <width>131</width>
       <height>331</height>
      </rect>
     </property>
@@ -777,7 +783,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Warstwa zawartosci:</string>
+     <string>Warstwa zawartości:</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_9">
@@ -798,7 +804,7 @@
      <rect>
       <x>160</x>
       <y>50</y>
-      <width>121</width>
+      <width>131</width>
       <height>331</height>
      </rect>
     </property>

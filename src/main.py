@@ -40,12 +40,13 @@ class App(QMainWindow):
         return total, first
 
     def load_style(self):
-        self.style_path = QFileDialog.getOpenFileName(self, 'Open file', '~/', "Image files (*.jpg *.gif)")
+        self.style_path = QFileDialog.getOpenFileName(self, 'Open file', '~/', "Image files (*.jpg *.gif *.png *.JPG)")
         self.style_image = QPixmap(self.style_path[0])
         self.stylelb.setPixmap(QPixmap( self.style_image))
 
     def load_content(self):
-        self.content_path = QFileDialog.getOpenFileName(self, 'Open file', '~/')
+        self.content_path = QFileDialog.getOpenFileName(self, 'Open file', '~/',
+                                                        "Video/Image files (*.avi *.mp4 *.wave *.jpg *.gif *.png *.JPG)")
 
         content_video = cv2.VideoCapture(self.content_path[0])
         length, first = self.count_frames(content_video)

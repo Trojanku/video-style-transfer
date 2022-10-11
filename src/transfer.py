@@ -1,28 +1,18 @@
 from __future__ import print_function
-import cv2
 import time
 from PIL import Image
-import numpy as np
-from keras import backend
 from keras.applications.vgg16 import VGG16
 from scipy import optimize
 import tensorflow as tf
 from tensorflow.python.client import device_lib
-
-# --------------- Import from files ------------------
 from Evaluator import Evaluator
 from functions import *
-# ----------------------------------------------------
-
-# ---------------------- PyQt ------------------------
 from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap
 from PIL.ImageQt import ImageQt
-# ----------------------------------------------------
 
 
 class StyleTransfer(QtCore.QObject):
-
     signal = QtCore.pyqtSignal(Image.Image)
 
     def __init__(self):
@@ -33,8 +23,8 @@ class StyleTransfer(QtCore.QObject):
         self.contet_layers = []
 
     def set_values(self, style_path, content_path, iter, outlb, framelb, iterlb,
-                 content_weight, style_weight,neighbour_weight
-                 ,width,height,style_layers,content_layers):
+                   content_weight, style_weight, neighbour_weight
+                   , width, height, style_layers, content_layers):
 
         self.style_path = style_path
         self.content_path = content_path
@@ -72,7 +62,7 @@ class StyleTransfer(QtCore.QObject):
         frames_count = 0
         temp_frames = []
         for frame in frames:
-            temp_frames.append(preprocess(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR), True,self.height,self.width))
+            temp_frames.append(preprocess(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR), True, self.height, self.width))
             frames_count += 1
         print('wideo frames: ', frames_count)
 
@@ -81,7 +71,7 @@ class StyleTransfer(QtCore.QObject):
 
         # load style image
         style_path = self.style_path
-        style = preprocess(load_img(style_path,self.height,self.width), True, self.height,self.width)
+        style = preprocess(load_img(style_path, self.height, self.width), True, self.height, self.width)
         style_image = tf.Variable(style)
 
         # make placeholder for our target new frames
@@ -97,7 +87,7 @@ class StyleTransfer(QtCore.QObject):
 
         # define CNN model
         model = VGG16(input_tensor=input_tensor, weights='imagenet',
-                      pooling=max,include_top=False)
+                      pooling=max, include_top=False)
 
         layers = dict([(layer.name, layer.output) for layer in model.layers])
 
@@ -107,21 +97,20 @@ class StyleTransfer(QtCore.QObject):
         layer_features = layers[self.contet_layers[0]]
         content_image_features = layer_features[0, :, :, :]
         combination_features = layer_features[2, :, :, :]
-        loss += self.content_weight * content_loss(content_image_features,combination_features)
-
+        loss += self.content_weight * content_loss(content_image_features, combination_features)
 
         # add style loss
         for layer_name in self.style_layers:
             layer_features = layers[layer_name]
             style_features = layer_features[1, :, :, :]
             combination_features = layer_features[2, :, :, :]
-            loss += (self.style_weight / len(self.style_layers)) * style_loss(style_features, combination_features,self.height,self.width)
+            loss += (self.style_weight / len(self.style_layers)) * style_loss(style_features, combination_features, self.height, self.width)
 
         # add neigbour losses
         loss += self.neighbour_weight * neighbour_loss(previous_combination, combination_image)
 
         # add total variation regularizer
-        loss += total_variation_loss(combination_image,self.height,self.width)
+        loss += total_variation_loss(combination_image, self.height, self.width)
 
         # compute gradients
         grads = backend.gradients(loss, combination_image)
@@ -140,8 +129,8 @@ class StyleTransfer(QtCore.QObject):
         for i in range(frames_count):
 
             # compute tensorflow graph to get loss value and gradients
-            f_outputs = backend.function([combination_image, previous_combination], outputs, feed_dict = {
-                                                                                    content_image: temp_frames[i]})
+            f_outputs = backend.function([combination_image, previous_combination], outputs, feed_dict={
+                content_image: temp_frames[i]})
 
             evaluator.set_data(f_outputs)
             iterations = self.iterations
@@ -156,15 +145,15 @@ class StyleTransfer(QtCore.QObject):
                     self.iterlb.setText(str(j + 1))
                     start_time = time.time()
 
-                    x, min_val, info = optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(), args=(prev.flatten(), ),
-                                                     fprime=evaluator.grads, maxfun=20)
+                    x, min_val, info = optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(), args=(prev.flatten(),),
+                                                              fprime=evaluator.grads, maxfun=20)
 
                     print('Current loss value:', min_val)
                     end_time = time.time()
                     print('Iteration %d completed in %ds' % (j, end_time - start_time))
 
                     z = x.copy()
-                    z = deprocess(z,self.height,self.width)
+                    z = deprocess(z, self.height, self.width)
                     im = Image.fromarray(z)
 
                     # show actual generated image on gui
@@ -178,7 +167,7 @@ class StyleTransfer(QtCore.QObject):
             out_frames.append(z)
 
             # have to initialize the optimalization for the wraped frame
-            if(i + 1 < frames_count):
+            if (i + 1 < frames_count):
                 f_prev = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
                 f_next = cv2.cvtColor(frames[i + 1], cv2.COLOR_BGR2GRAY)
                 flow = optical_flow(f_prev, f_next)
@@ -193,16 +182,13 @@ class StyleTransfer(QtCore.QObject):
         video_name = '../generated/out.avi'
 
         fourcc = cv2.VideoWriter_fourcc(*'MPEG')
-        video = cv2.VideoWriter(video_name,fourcc, int(self.fps), (self.height,self.width))
+        video = cv2.VideoWriter(video_name, fourcc, int(self.fps), (self.height, self.width))
 
         for ima in out_frames:
-            video.write(cv2.cvtColor(ima,cv2.COLOR_RGB2BGR))
+            video.write(cv2.cvtColor(ima, cv2.COLOR_RGB2BGR))
 
         del evaluator
         cv2.destroyAllWindows()
         video.release()
         backend.clear_session()
         tf.reset_default_graph()
-
-
-

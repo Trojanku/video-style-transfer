@@ -1,21 +1,23 @@
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtGui import QPixmap,QImage
+from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QFileDialog, QMainWindow
 from PyQt5.QtCore import Qt
-from PIL import Image
 from PIL.ImageQt import ImageQt
 from transfer import StyleTransfer
 import threading
 import cv2
 import sys
 
+
 class App(QMainWindow):
 
     def __init__(self):
         super(App, self).__init__()
+        self.content_path = None
+        self.style_image = None
+        self.style_path = None
         uic.loadUi('../desing_main.ui', self)
         self.show()
-
 
         self.stylebt.clicked.connect(self.load_style)
         self.contentbt.clicked.connect(self.load_content)
@@ -27,7 +29,7 @@ class App(QMainWindow):
 
         self.transfer = StyleTransfer()
 
-    def count_frames(self,video):
+    def count_frames(self, video):
         total = 0
         first = 0
         while True:
@@ -42,7 +44,7 @@ class App(QMainWindow):
     def load_style(self):
         self.style_path = QFileDialog.getOpenFileName(self, 'Open file', '~/', "Image files (*.jpg *.gif *.png *.JPG)")
         self.style_image = QPixmap(self.style_path[0])
-        self.stylelb.setPixmap(QPixmap( self.style_image))
+        self.stylelb.setPixmap(QPixmap(self.style_image))
 
     def load_content(self):
         self.content_path = QFileDialog.getOpenFileName(self, 'Open file', '~/',
@@ -62,7 +64,7 @@ class App(QMainWindow):
 
         cv2.destroyAllWindows()
 
-    def add(self,image):
+    def add(self, image):
         im = ImageQt(image)
         pix = QPixmap.fromImage(im)
         self.outlb.setPixmap(pix)
@@ -94,10 +96,10 @@ class App(QMainWindow):
         self.label_iteracja_max.setText(str(iterations))
 
         self.transfer.set_values(self.style_path[0], self.content_path[0], iterations,
-                                  self.outlb, self.label_frame, self.label_iter,
-                                  content_weight, style_weight,
-                                  neighbour_weight, width, height, self.style_layers,
-                                  self.content_layer)
+                                 self.outlb, self.label_frame, self.label_iter,
+                                 content_weight, style_weight,
+                                 neighbour_weight, width, height, self.style_layers,
+                                 self.content_layer)
 
         self.t = threading.Thread(target=self.transfer.run, daemon=True)
         self.t.start()
